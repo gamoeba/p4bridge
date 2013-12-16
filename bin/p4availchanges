@@ -1,2 +1,2 @@
 #!/bin/bash
-p4 changes | awk -v changelist=$1 '{ if ($2 > changelist) print $2 }' | sort -n
+p4 changes $DEPOTDIR | awk -v changelist=$1 '{ if ($2 > changelist) print $2 }' | sort -n

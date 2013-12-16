@@ -1,9 +1,11 @@
 #!/bin/bash
-echo "fetching changelist $1"
-p4 sync @$1
+echo "fetching changelist $DEPOTDIR@$1"
+p4 sync $DEPOTDIR@$1
 git add --all
 AUTHOR=`p4changecommitter $1`
-git commit -m "`p4changedesc $1`" --author="$AUTHOR < $AUTHOR@unknown.com >"
+DATE=`p4changedate $1`
+DESC=`p4changedesc $1 | changefilter`
+git commit -m "$DESC" --author="$AUTHOR < $AUTHOR@unknown.com >" --date="$DATE"
 if [ $? -eq 0 ]
 then
 setlastp4change $1
