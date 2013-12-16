@@ -1,0 +1,2 @@
+#!/bin/bash
+repo forall -p -c "getp4change $1" 
