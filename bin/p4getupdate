@@ -1,0 +1,12 @@
+#!/bin/bash
+echo "fetching changelist $1"
+p4 sync @$1
+git add --all
+AUTHOR=`p4changecommitter $1`
+git commit -m "`p4changedesc $1`" --author="$AUTHOR < $AUTHOR@unknown.com >"
+if [ $? -eq 0 ]
+then
+setlastp4change $1
+else
+echo "no changes, changelist skipped"
+fi
