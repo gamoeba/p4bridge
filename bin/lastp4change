@@ -1,0 +1,2 @@
+#!/bin/bash
+git tag -l --contains HEAD | grep 'perforce#' | sed 's/perforce#//'
