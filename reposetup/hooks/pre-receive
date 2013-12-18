@@ -1,0 +1,29 @@
+#!/bin/bash
+LAST_CHANGE=`lastp4change`
+AVAIL_CHANGES=`p4availchanges $LAST_CHANGE | wc -l`
+echo $AVAIL_CHANGES
+if [ $AVAIL_CHANGES -gt 0 ]
+then
+	echo "p4 updates available, please sync first"
+	exit 1
+fi
+
+p4master_sha=`git rev-list -n 1 p4/master`
+
+while read parent_sha new_sha remote_ref
+do
+	echo $parent_sha $new_sha $remote_ref
+	if [[ $remote_ref =~ ^refs/heads/p4/ ]] 
+	then
+		if [ "$remote_ref" != "refs/heads/p4/submit" ]
+		then
+			echo "please push to p4/submit"
+			exit 1
+		fi
+	fi
+	if [ "$parent_sha" != "$p4master_sha" ]
+	then
+		echo "submit should be based on lastest p4/master"
+		exit 1
+	fi 
+done
