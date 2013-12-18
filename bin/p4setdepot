@@ -1,0 +1,4 @@
+#!/bin/bash
+GDIR=`git rev-parse --git-dir`
+DEPOTFILE=`echo $GDIR/.p4depot`
+export DEPOTDIR=`cat $DEPOTFILE`

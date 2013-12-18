@@ -1,4 +1,8 @@
 #!/bin/bash
 git checkout -b p4/master
-export DEPOTDIR=$1
+export GDIR=`git rev-parse --git-dir`
+echo "$1"
+FILENAME="$GDIR/.p4depot"
+echo $FILENAME
+echo "$1" > $FILENAME 
 p4availchanges $2 | xargs -L1 p4getupdate

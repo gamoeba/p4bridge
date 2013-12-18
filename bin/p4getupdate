@@ -1,6 +1,7 @@
 #!/bin/bash
+. p4setdepot
 echo "fetching changelist $DEPOTDIR@$1"
-p4 sync $DEPOTDIR@$1
+p4 sync $DEPOTDIR"/..."@$1
 git add --all
 AUTHOR=`p4changecommitter $1`
 DATE=`p4changedate $1`
