@@ -1,0 +1,31 @@
+#!/bin/bash
+# Check for proper number of command line args.
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
+then
+  echo "Usage: `basename $0` {changelist-num}"
+  exit $E_BADARGS
+fi
+
+. p4setdepot
+BASE_CL=`expr $1 - 1`
+GITTAG=`p4latestchange $BASE_CL`
+echo "basing git on tag "$GITTAG
+git reset --hard $GITTAG
+echo "fetching changelist $DEPOTDIR@$BASE_CL"
+p4 sync -f $DEPOTDIR"/..."@$BASE_CL
+p4 unshelve -s $1
+git add --all
+git commit -m "unshelved from $1"
+if [ "$?" -eq "0" ]
+then
+	git tag -af "unshelved#$1" -m "p4bridge"
+else
+	echo "empty changelist - not adding"
+fi
+
+p4 revert -c default //...
+git reset --hard HEAD~1
