@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote  name="p4git"
+           fetch="." />
+
+  <default revision="refs/heads/p4/master"
+           remote="p4git"
+           sync-j="4" />
+
+  <project name="main" remote="p4git" path="main"/>
+  <project name="one" remote="p4git" path="main/one"/>
+  <project name="two" remote="p4git" path="main/two"/>
+  <project name="three" remote="p4git" path="main/three"/>
+
+</manifest>
