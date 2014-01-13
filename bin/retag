@@ -1,0 +1,2 @@
+#!/bin/bash
+while read CL; do git tag -f -a CL#`echo $CL | sed 's/perforce#//g'` -m "perforce" `git rev-list -n1 $CL` ; git tag -d $CL; done

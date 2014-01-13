@@ -1,2 +1,2 @@
 #!/bin/bash
-git tag -l --contains HEAD | grep 'perforce#' | sed 's/perforce#//'
+git tag -l --contains HEAD | grep 'perforce#' | sed 's/perforce#//' | sort -n -r | head -n 1
