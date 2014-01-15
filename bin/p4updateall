@@ -1,4 +1,0 @@
-#!/bin/bash
-# Check for proper number of command line args.
-
-cat repos | xargs -L1 echo | update.awk

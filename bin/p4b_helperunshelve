@@ -10,11 +10,11 @@ then
   exit $E_BADARGS
 fi
 
-. p4setdepot
+. p4b_setdepot
 BASE_CL=`expr $1 - 1`
-GITTAG=`p4latestchange $BASE_CL`
+GITTAG=`p4b_latestchange $BASE_CL`
 echo "basing git on tag "$GITTAG
-git reset --hard $GITTAG
+git checkout --detach $GITTAG 2>/dev/null
 echo "fetching changelist $DEPOTDIR@$BASE_CL"
 p4 sync -f $DEPOTDIR"/..."@$BASE_CL
 p4 unshelve -s $1
@@ -28,4 +28,5 @@ else
 fi
 
 p4 revert -c default //...
-git reset --hard HEAD~1
+git reset --hard
+git checkout p4/master 

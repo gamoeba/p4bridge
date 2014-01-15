@@ -1,9 +1,9 @@
 #!/bin/bash
 git checkout p4/master
 LAST_CHANGE=`lastp4change`
-NUM_CHANGES=`p4availchanges $LAST_CHANGE | wc -l`
+NUM_CHANGES=`p4b_availchanges $LAST_CHANGE | wc -l`
 echo $NUM_CHANGES" updates available"
 if [ $NUM_CHANGES -gt 0 ]
 then
-	p4availchanges `lastp4change` | xargs -L1 p4getupdate
+	p4b_availchanges `lastp4change` | xargs -L1 p4b_getupdate
 fi

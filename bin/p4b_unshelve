@@ -1,0 +1,21 @@
+#!/bin/bash
+# Check for proper number of command line args.
+pushd .
+cd ~/.p4bridge
+CL=$1
+shift
+if [ $# -gt 0 ]
+then
+	for repo in $*
+	do
+		export GIT_DIR=$repo/.git 
+		p4b_helperunshelve $CL
+	done
+else
+	cat .repos | xargs -L1 echo | gawk -v cl=$CL '{
+			repo=$1
+			system("export GIT_DIR="repo"/.git ; p4b_helperunshelve "cl)
+			}'
+fi
+popd
+repo sync

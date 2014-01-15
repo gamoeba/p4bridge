@@ -1,0 +1,20 @@
+#!/bin/bash
+# Check for proper number of command line args.
+pushd .
+cd ~/.p4bridge
+
+if [ $# -gt 0 ]
+then
+	for repo in $*
+	do
+		export GIT_DIR=$repo/.git 
+		p4b_helperupdate
+	done
+else
+	cat .repos | xargs -L1 echo | gawk '{
+			repo=$1
+			system("export GIT_DIR="repo"/.git ; p4b_helperupdate")
+			}'
+fi
+popd
+repo sync

@@ -5,4 +5,4 @@ echo "$1"
 FILENAME="$GDIR/.p4depot"
 echo $FILENAME
 echo "$1" > $FILENAME 
-p4availchanges $2 | xargs -L1 p4getupdate
+p4b_availchanges $2 | xargs -L1 p4b_getupdate

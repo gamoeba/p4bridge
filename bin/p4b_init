@@ -1,0 +1,7 @@
+#!/bin/bash
+pushd .
+cd ~/.p4bridge
+cat .repos | xargs -L1 echo | p4b_helperinit.awk
+popd
+repo init -u ~/.p4bridge/repo
+repo sync

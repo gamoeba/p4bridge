@@ -1,0 +1,17 @@
+#!/bin/bash
+# Check for proper number of command line args.
+cd ~/.p4bridge
+
+if [ $# -gt 0 ]
+then
+	for repo in $*
+	do
+		export GIT_DIR=$repo/.git 
+		p4b_helpershowavail
+	done
+else
+	cat .repos | xargs -L1 echo | gawk '{
+			repo=$1
+			system("export GIT_DIR="repo"/.git ; p4b_helpershowavail")
+			}'
+fi
