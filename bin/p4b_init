@@ -1,7 +1,13 @@
 #!/bin/bash
 pushd .
-cd ~/.p4bridge
+cd $P4BRIDGE_HOME
+if [ ! -f .repos ]
+then
+	echo "must create a .repos file in $P4BRIDGE_HOME with the following format"
+	echo "repo-name //perforce/depot/path repo_path_to_checkout exclude_dir1 exclude_dir2"
+	exit 1
+fi 
 cat .repos | xargs -L1 echo | p4b_helperinit.awk
 popd
-repo init -u ~/.p4bridge/repo
+repo init -u $P4BRIDGE_HOME/repo
 repo sync

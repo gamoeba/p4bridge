@@ -12,11 +12,11 @@ echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
            sync-j=\"4\" /> " > default.xml
 cd ..
 
-gawk '{
+gawk -v p4b_home=$P4BRIDGE_HOME '{
 repo=$1
 depot=$2
 projpath=$3
-cmd4="echo \"<project name=\\\""repo"\\\" remote=\\\"p4git\\\" path=\\\""projpath"\\\"/>\" >> ~/.p4bridge/repo/default.xml"
+cmd4="echo \"<project name=\\\""repo"\\\" remote=\\\"p4git\\\" path=\\\""projpath"\\\"/>\" >> "p4b_home"/repo/default.xml"
 system(cmd4)
 cmd="git init "repo
 system(cmd)

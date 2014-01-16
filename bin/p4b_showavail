@@ -1,6 +1,6 @@
 #!/bin/bash
 # Check for proper number of command line args.
-cd ~/.p4bridge
+cd $P4BRIDGE_HOME 
 
 if [ $# -gt 0 ]
 then

@@ -1,4 +1,34 @@
 #!/bin/sh
+if [[ -z $P4BRIDGE_CLIENT ]]
+then
+	echo "fatal, must set P4BRIDGE_CLIENT to a perforce client workspace that is reserved exclusively for p4bridge"
+	exit 1
+fi
+
+if [[ -z $P4BRIDGE_HOME ]]
+then
+	export P4BRIDGE_HOME=~/.p4bridge
+fi
+
+if [[ -z $P4BRIDGE_SERVERTIMEZONE ]]
+then
+	export P4BRIDGE_SERVERTIMEZONE=`p4 info | grep -E "^Server date:" | awk '{ print $5 }'`
+fi
+
+if [ ! -d $P4BRIDGE_HOME ]
+then
+	echo "P4Bridge home directory $P4BRIDGE_HOME does not exist"
+	exit 1
+fi   
+
+E_BADARGS=65
+
+if [[ $# -lt 1 ]]
+then
+ echo "Usage: `basename $0` command {command-args}"
+ exit $E_BADARGS
+fi	
+export P4CLIENT=$P4BRIDGE
 command=$1
 shift
 p4b_$command "$@"
