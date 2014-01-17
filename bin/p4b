@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [[ -z $P4BRIDGE_CLIENT ]]
 then
 	echo "fatal, must set P4BRIDGE_CLIENT to a perforce client workspace that is reserved exclusively for p4bridge"
@@ -28,7 +28,7 @@ then
  echo "Usage: `basename $0` command {command-args}"
  exit $E_BADARGS
 fi	
-export P4CLIENT=$P4BRIDGE
+export P4CLIENT=$P4BRIDGE_CLIENT
 command=$1
 shift
 p4b_$command "$@"

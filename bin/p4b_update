@@ -1,5 +1,12 @@
 #!/bin/bash
-# Check for proper number of command line args.
+
+OPENED=`p4 opened | wc -l`
+if [ ! $OPENED -eq 0 ]
+then
+	echo "open files in perforce, please revert or shelve first"
+	exit 1
+fi
+
 pushd .
 cd $P4BRIDGE_HOME 
 
