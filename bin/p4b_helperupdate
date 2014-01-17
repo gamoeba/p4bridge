@@ -1,4 +1,14 @@
 #!/bin/bash
+P4DEPOT=`cat $GIT_DIR/.p4depot`
+P4DIR=`p4 where $P4DEPOT | awk '{ print $3 }'`
+P4UNTRACKED=`find $P4DIR -type f -print0 | xargs -0 p4 fstat 2>&1 | awk '/no such file/{print $1}'`
+if [ ! "$P4UNTRACKED" == "" ]
+then
+	echo "Files in directory untracked by perforce... Please resolve before update"
+	echo "untracked: $P4UNTRACKED"
+	exit 1
+fi 
+
 git checkout p4/master
 LAST_CHANGE=`lastp4change`
 NUM_CHANGES=`p4b_availchanges $LAST_CHANGE | wc -l`
