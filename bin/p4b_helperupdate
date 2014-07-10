@@ -5,7 +5,8 @@ P4UNTRACKED=`find $P4DIR -type f -print0 | xargs -0 p4 fstat 2>&1 | awk '/no suc
 if [ ! "$P4UNTRACKED" == "" ]
 then
 	echo "Files in directory untracked by perforce... Please resolve before update"
-	echo "untracked: $P4UNTRACKED"
+	echo "untracked: "
+    echo "$P4UNTRACKED"
 	exit 1
 fi 
 
