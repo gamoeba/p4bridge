@@ -1,5 +1,6 @@
 #!/bin/bash
 . p4b_setdepot
+pwd
 ROOTDIR=$P4BRIDGEDIR/root
 CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
 git --work-tree $P4BRIDGEDIR diff-tree --no-commit-id -r $CURR_BRANCH | awk -v dd=$ROOTDIR '{print $5" "dd"/"$6 }' | 

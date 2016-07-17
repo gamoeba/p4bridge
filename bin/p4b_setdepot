@@ -2,6 +2,11 @@
 
 P4BRIDGEDIR=".p4bridge"
 
+function upsearch () {
+    test / == "$PWD" && return || test -e "$1" && return || cd .. && upsearch "$1"
+}
+
+
 read_properties()
 {
   file="$1"
@@ -13,5 +18,7 @@ read_properties()
     esac
   done < "$file"
 }
+
+upsearch $P4BRIDGEDIR
 
 read_properties "$P4BRIDGEDIR/config"

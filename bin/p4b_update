@@ -1,10 +1,5 @@
 #!/bin/bash
 P4BRIDGEDIR=.p4bridge
-if [ ! -d "$P4BRIDGEDIR" ]
-then
-    echo "missing $P4BRIDGEDIR"
-    exit 1
-fi
 . p4b_setdepot
 
 OPENED=`p4 opened 2>/dev/null | wc -l`
@@ -16,4 +11,5 @@ fi
 CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
 git checkout p4_master && p4b_availchanges `lastp4change` | xargs -L1 p4b_getupdate
 git checkout .
+git clean -fd
 git checkout $CURR_BRANCH
