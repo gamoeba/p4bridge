@@ -9,7 +9,7 @@ read_properties()
     case "$key" in
       '#'*) ;;
       *)
-        eval "$key=\"$value\""
+        eval "export $key=\"$value\""
     esac
   done < "$file"
 }

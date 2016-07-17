@@ -1,7 +1,9 @@
 #!/bin/bash
 . p4b_setdepot
 echo "fetching changelist $P4DEPOT@$1"
+echo $P4CLIENT
 p4 sync $P4DEPOT"/..."@$1
+echo "after sync"
 git --work-tree .p4bridge/root/ add --all
 AUTHOR=`p4b_changecommitter $1`
 DATE=`p4b_changedate $1`

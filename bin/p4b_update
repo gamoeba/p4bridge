@@ -13,7 +13,7 @@ then
 	echo "open files in perforce, please revert or shelve first"
 	exit 1
 fi
-CURR_BRANCH=master
+CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
 git checkout p4_master && p4b_availchanges `lastp4change` | xargs -L1 p4b_getupdate
 git checkout .
 git checkout $CURR_BRANCH

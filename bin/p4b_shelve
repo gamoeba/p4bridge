@@ -1,0 +1,5 @@
+#!/bin/bash
+. p4b_setdepot
+FILES=`p4 opened 2>/dev/null | sed -e 's/#.*//g' | xargs -L1 printf "\\t%s\\n"`
+echo -e "Change: new\nDescription: $1\nFiles:\n$FILES" | p4 shelve -i 2>/dev/null
+p4 revert $FILES

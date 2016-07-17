@@ -23,7 +23,7 @@ echo "P4DEPOT=$P4DEPOT" >> $P4BRIDGEDIR/config
 ROOT=`pwd`/$P4BRIDGEDIR/root
 P4DEPOTTRIM=`echo $P4DEPOT | sed "s|//||g"`
 echo -e "Client: $P4CLIENT\nRoot: $ROOT\nOwner: $USER\nView:\n\t$P4DEPOT/... //$P4CLIENT/$P4DEPOTTRIM/...\n" | p4 client -i 
-p4 sync -f
+p4 sync -f 2>/dev/null
 git init .
 echo $P4BRIDGEDIR/ >> .git/info/exclude
 git checkout -b p4_master
