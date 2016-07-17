@@ -27,6 +27,6 @@ p4 sync -f 2>/dev/null
 git init .
 echo $P4BRIDGEDIR/ >> .git/info/exclude
 git checkout -b p4_master
-p4b_availchanges `lastp4change` | xargs -L1 p4b_getupdate
+p4b_availchanges $2 | xargs -L1 p4b_getupdate
 git checkout .
 git checkout -b master
