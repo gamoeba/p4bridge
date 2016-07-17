@@ -1,21 +1,31 @@
 #!/bin/bash
 # Check for proper number of command line args.
-pushd .
-cd $P4BRIDGE_HOME 
-CL=$1
-shift
-if [ $# -gt 0 ]
+
+EXPECTED_ARGS=1
+E_BADARGS=65
+
+if [ $# -ne $EXPECTED_ARGS ]
 then
-	for repo in $*
-	do
-		export GIT_DIR=$repo/.git 
-		p4b_helperunshelve $CL
-	done
-else
-	cat .repos | xargs -L1 echo | gawk -v cl=$CL '{
-			repo=$1
-			system("export GIT_DIR="repo"/.git ; p4b_helperunshelve "cl)
-			}'
+  echo "Usage: `basename $0` {changelist-num}"
+  exit $E_BADARGS
 fi
-popd
-repo sync
+
+. p4b_setdepot
+
+export CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
+BASE_CL=`expr $1 - 1`
+GITTAG=`p4b_latestchange $BASE_CL`
+echo "basing git on tag "$GITTAG
+git checkout --detach $GITTAG 2>/dev/null
+echo "fetching changelist $DEPOTDIR@$BASE_CL"
+p4 sync -f $P4DEPOT"/..."@$BASE_CL
+p4 unshelve -s $1
+export DESC=`p4b_changedesc $1`
+git checkout -b shelved/$1 && 
+    git --work-tree $P4BRIDGEDIR/root add --all &&
+    git commit -m "Unshelved from $P4DEPOT@$1
+
+$DESC" 
+git checkout .
+git clean -fd
+git checkout $CURR_BRANCH
