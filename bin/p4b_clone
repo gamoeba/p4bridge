@@ -1,20 +1,35 @@
 #!/bin/bash
 
+function printUsage()
+{
+    echo "Usage: p4b clone //Depot/repo [starting changelist]"
+}
+
+if [ $# -eq 0 ]
+then
+    printUsage
+    exit 1
+fi
+
+CHANGESPEC=""
+if [ -z "$2" ]
+then
+    CHANGESPEC="@$2"
+fi
+
 P4BRIDGEDIR=".p4bridge"
 
-read_properties()
-{
-  file="$1"
-  while IFS="=" read -r key value; do
-    case "$key" in
-      '#'*) ;;
-      *)
-        eval "$key=\"$value\""
-    esac
-  done < "$file"
-}
 P4CLIENTPREFIX=$USER"_"`hostname -s`
 P4DEPOT=$1
+CLONEDIR=`echo $P4DEPOT | sed -E "s|(/\|//)|_|g" | sed -E "s/^_//g"`
+if [ -d "$CLONEDIR" ]
+then
+    echo "Clone directory already exists"
+    exit 1
+fi
+mkdir $CLONEDIR
+cd $CLONEDIR
+
 P4CLIENT=$P4CLIENTPREFIX`echo $P4DEPOT | sed -E "s|(/\|//)|_|g"`
 echo $P4CLIENT
 mkdir -p $P4BRIDGEDIR
@@ -24,10 +39,11 @@ ROOT=`pwd`/$P4BRIDGEDIR/root
 mkdir -p $ROOT
 P4DEPOTTRIM=`echo $P4DEPOT | sed "s|//||g"`
 echo -e "Client: $P4CLIENT\nRoot: $ROOT\nOwner: $USER\nView:\n\t$P4DEPOT/... //$P4CLIENT/...\n" | p4 client -i 
-p4 sync -f $P4DEPOT/...@$2 2>/dev/null
+p4 sync -f $P4DEPOT/...$CHANGESPEC 2>/dev/null
 git init .
 echo $P4BRIDGEDIR/ >> .git/info/exclude
 git checkout -b p4_master
 p4b_availchanges $2 | xargs -L1 p4b_getupdate
 git checkout .
 git checkout -b master
+cd -

@@ -1,7 +1,8 @@
 #!/bin/bash
+
 function printUsage()
 {
-    echo "Usage: p4b shelve \"changelist description\""
+    echo "Usage: p4b submit \"changelist description\""
 }
 
 if [ $# -eq 0 ]
@@ -12,5 +13,4 @@ fi
 
 . p4b_setdepot
 FILES=`p4 opened 2>/dev/null | sed -e 's/#.*//g' | while read FILE; do printf "\\t%s\\n" $FILE; done`
-echo -e "Change: new\nDescription: $1\nFiles:\n$FILES" | p4 shelve -i 2>/dev/null
-p4 revert $FILES
+echo -e "Change: new\nDescription: $1\nFiles:\n$FILES" | p4 submit -i 2>/dev/null
