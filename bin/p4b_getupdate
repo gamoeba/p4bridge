@@ -2,13 +2,15 @@
 . p4b_setdepot
 echo "fetching changelist $P4DEPOT@$1"
 echo $P4CLIENT
-p4 sync $P4DEPOT"/..."@$1
+p4 sync -f $P4DEPOT"/..."@$1
 echo "after sync"
 git --work-tree .p4bridge/root/ add --all
 AUTHOR=`p4b_changecommitter $1`
 DATE=`p4b_changedate $1`
-DESC=`p4b_changedesc $1 | changefilter`
-git commit -m "$DESC" --author="$AUTHOR < $AUTHOR@unknown.com >" --date="$DATE $P4BRIDGE_SERVERTIMEZONE"
+DESC="`p4b_changedesc $1`
+
+perforce#$1"
+git --work-tree .p4bridge/root/ commit -m "$DESC" --author="$AUTHOR < $AUTHOR@unknown.com >" --date="$DATE $P4BRIDGE_SERVERTIMEZONE"
 if [ $? -eq 0 ]
 then
 setlastp4change $1

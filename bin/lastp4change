@@ -1,2 +1,2 @@
 #!/bin/bash
-git tag -l --contains HEAD 2>/dev/null | grep 'perforce#' | sed 's/perforce#//' | sort -n -r | head -n 1
+git log --simplify-by-decoration --decorate --pretty=oneline | fgrep 'tag: ' | perl -ne '/tag: perforce#(\d+)/ && print "$1\n";' | sort -n -r | head -n 1
