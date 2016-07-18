@@ -9,7 +9,7 @@ then
 	exit 1
 fi
 CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
-git checkout p4_master && p4b_availchanges `lastp4change` | xargs -L1 p4b_getupdate
+git checkout p4_master && p4b_availchanges `lastp4change` | while read CHG; do p4b_getupdate $CHG; done
 git checkout .
 git clean -fd
 git checkout $CURR_BRANCH
