@@ -1,13 +1,13 @@
 #!/bin/bash
 . p4b_setdepot
-pwd
+
 ROOTDIR=$P4BRIDGEDIR/root
 CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
-git --work-tree $P4BRIDGEDIR diff-tree --no-commit-id -r $CURR_BRANCH | awk -v dd=$ROOTDIR '{print $5" "dd"/"$6 }' | 
+git --work-tree $ROOTDIR checkout . 
+git diff-tree --no-commit-id -r p4_master $CURR_BRANCH | awk -v dd=$ROOTDIR '{print $5" "dd"/"$6 }' | 
 					sed -e 's/^M/p4 edit/g' -e 's/^A/p4 add/g' -e 's/^D/p4 delete/g' | 
 								while read -r line 
 								do 
 									${line} 
 								done
 
-git --work-tree $P4BRIDGEDIR checkout . 
