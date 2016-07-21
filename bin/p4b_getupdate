@@ -6,12 +6,8 @@ echo $P4CLIENT
 p4 sync $P4DEPOT"/..."@$1
 echo "after sync"
 git --work-tree .p4bridge/root/ add --all
-AUTHOR=`changecommitter $1`
-DATE=`changedate $1`
-DESC="`changedesc $1`
-
-perforce#$1"
-git --work-tree .p4bridge/root/ commit -m "$DESC" --author="$AUTHOR < $AUTHOR@unknown.com >" --date="$DATE $P4BRIDGE_SERVERTIMEZONE"
+git --work-tree .p4bridge/root/ commit -m "tmp"
+amendChangelistWithCommitInfo $1
 if [ $? -eq 0 ]
 then
 setlastp4change $1

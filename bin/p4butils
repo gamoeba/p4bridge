@@ -1,7 +1,7 @@
 #!/bin/bash
 function listp4changes()
 {
-    git log --simplify-by-decoration --decorate --pretty=oneline | fgrep 'tag: ' | perl -ne '/tag: perforce#(\d+)/ && print "$1\n";' | sort -n -r
+    git log --simplify-by-decoration --decorate --pretty=oneline p4_master | fgrep 'tag: ' | perl -ne '/tag: perforce#(\d+)/ && print "$1\n";' | sort -n -r
 }
 
 function lastp4change()
@@ -37,12 +37,39 @@ function changedate()
 
 function changedesc()
 {
-    p4 change -o $1 | grep ^Date: | sed 's/^Date://' | tr -d '\011'
+    p4 change -o $1 -L | sed -e '1,/^Description/d' | tr -d '\011'
 }
 
 function changecommitter()
 {
     p4 change -o $1 | grep ^User: | sed 's/^User://' | tr -d '\011'
+}
+
+function useremail()
+{
+    p4 user -o $1 | grep ^Email: | sed 's/^Email://' | tr -d '\011'
+}
+
+function userfullname()
+{
+    p4 user -o $1 | grep ^FullName: | sed 's/^FullName://' | tr -d '\011'
+}
+
+function amendChangelistWithCommitInfo()
+{
+AUTHOR=`changecommitter $1`
+USERNAME=`userfullname $AUTHOR`
+USEREMAIL=`useremail $AUTHOR`
+AUTHORFMT="$USERNAME < $USEREMAIL >"
+
+DATE=`changedate $1`
+DESC="`changedesc $1`
+perforce#$1"
+if [ ! -z "$2" ]; then
+    DESC="$DESC
+$2"
+fi
+git commit --amend -m "$DESC" --author="$AUTHORFMT" --date="$DATE $P4BRIDGE_SERVERTIMEZONE"
 }
 
 function setlastp4change()

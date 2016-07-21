@@ -49,15 +49,9 @@ do
     git checkout $FILENAME
 done
 
-DESC=`changedesc $CHANGELIST`
-AUTHOR=`changecommitter $CHANGELIST`
-DATE=`changedate $CHANGELIST`
-git --work-tree $P4BRIDGEROOTDIR commit -m "Unshelved from $P4DEPOT@$1
-
-$DESC
-
-Base Versions:
-$CHANGES" --author="$AUTHOR < $AUTHOR@unknown.com >" --date="$DATE"
+git --work-tree $P4BRIDGEROOTDIR commit -m "Unshelved from $P4DEPOT@$1"
+amendChangelistWithCommitInfo $CHANGELIST "Base File Versions:
+$CHANGES"
 
 git tag -af "shelved#$CHANGELIST" -m "p4bridge"
 
