@@ -2,14 +2,12 @@
 source p4butils
 setdepot
 echo "fetching changelist $P4DEPOT@$1"
-echo $P4CLIENT
-p4 sync $P4DEPOT"/..."@$1
-echo "after sync"
+p4 sync $P4DEPOT"/..."@$1 > /dev/null
 git --work-tree .p4bridge/root/ add --all
-git --work-tree .p4bridge/root/ commit -m "tmp"
-amendChangelistWithCommitInfo $1
+git --work-tree .p4bridge/root/ commit -q -m "tmp"
 if [ $? -eq 0 ]
 then
+amendChangelistWithCommitInfo $1
 setlastp4change $1
 else
 echo "no changes, changelist skipped"

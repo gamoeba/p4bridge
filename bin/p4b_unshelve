@@ -30,27 +30,29 @@ do
     then
         BASECL=`p4 fstat -T headChange $CHG | awk '/^\s*$/{next;}{print $3}'` 
         FILENAME=`echo $CHG | sed -n -e 's|'"$P4DEPOT"'/\(.*\)#.*|\1|p' `
-        BASECL=`p4limitchange $BASECL`
+        BASECL=`limitp4change $BASECL`
         TAGNAME="perforce#$BASECL"
         git checkout $TAGNAME $FILENAME
     fi 
 done 
-git commit -m "base change"
+git commit -q -m "Base file versions:
+$CHANGES"
 echo "$CHANGES" |
 while read CHG
 do 
     P4FILENAME=`echo $CHG | sed -e 's|#.*||g'`
     MATCHSTR='s|'$P4DEPOT'/\(.*\)#.*|\1|p' 
     FILENAME=`echo $CHG | sed -n -e $MATCHSTR `
-    p4 unshelve -f -s $CHANGELIST $P4FILENAME
+    p4 unshelve -f -s $CHANGELIST $P4FILENAME > /dev/null
     git --work-tree $P4BRIDGEROOTDIR add $FILENAME
     # now reset both perforce and git indexes
-    p4 revert $P4FILENAME
+    p4 revert $P4FILENAME > /dev/null
     git checkout $FILENAME
 done
 
-git --work-tree $P4BRIDGEROOTDIR commit -m "Unshelved from $P4DEPOT@$1"
-amendChangelistWithCommitInfo $CHANGELIST "Base File Versions:
+git --work-tree $P4BRIDGEROOTDIR commit -q -m "tmp"
+amendChangelistWithCommitInfo $CHANGELIST "Shelved@$1
+Previous versions of files:
 $CHANGES"
 
 git tag -af "shelved#$CHANGELIST" -m "p4bridge"

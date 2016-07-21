@@ -69,7 +69,7 @@ if [ ! -z "$2" ]; then
     DESC="$DESC
 $2"
 fi
-git commit --amend -m "$DESC" --author="$AUTHORFMT" --date="$DATE $P4BRIDGE_SERVERTIMEZONE"
+git commit --amend -q -m "$DESC" --author="$AUTHORFMT" --date="$DATE $P4BRIDGE_SERVERTIMEZONE"
 }
 
 function setlastp4change()

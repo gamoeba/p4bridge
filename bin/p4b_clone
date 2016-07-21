@@ -1,6 +1,5 @@
 #!/bin/bash
 source p4butils
-setdepot
 
 function printUsage()
 {
@@ -33,7 +32,6 @@ mkdir $CLONEDIR
 cd $CLONEDIR
 
 P4CLIENT=$P4CLIENTPREFIX`echo $P4DEPOT | sed -E "s|(/\|//)|_|g"`
-echo $P4CLIENT
 mkdir -p $P4BRIDGEDIR
 echo "P4CLIENT=$P4CLIENT" > $P4BRIDGEDIR/config
 echo "P4DEPOT=$P4DEPOT" >> $P4BRIDGEDIR/config
@@ -41,7 +39,7 @@ ROOT=`pwd`/$P4BRIDGEDIR/root
 mkdir -p $ROOT
 P4DEPOTTRIM=`echo $P4DEPOT | sed "s|//||g"`
 echo -e "Client: $P4CLIENT\nRoot: $ROOT\nOwner: $USER\nOptions: allwrite clobber compress\nView:\n\t$P4DEPOT/... //$P4CLIENT/...\n" | p4 client -i 
-p4 sync -f $P4DEPOT/...$CHANGESPEC 2>/dev/null
+p4 sync -f $P4DEPOT/...$CHANGESPEC >/dev/null
 git init .
 echo $P4BRIDGEDIR/ >> .git/info/exclude
 git checkout -b p4_master
