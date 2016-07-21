@@ -1,0 +1,76 @@
+#!/bin/bash
+function listp4changes()
+{
+    git log --simplify-by-decoration --decorate --pretty=oneline | fgrep 'tag: ' | perl -ne '/tag: perforce#(\d+)/ && print "$1\n";' | sort -n -r
+}
+
+function lastp4change()
+{
+    listp4changes | head -n 1
+}
+
+function firstp4change()
+{
+    listp4changes | tail -n 1
+}
+
+function limitp4change()
+{
+    RET=$1
+    FIRSTCHANGE=`firstp4change`
+    LASTCHANGE=`lastp4change`
+    if [[ $1 -gt $LASTP4CHANGE ]]
+    then
+        RET=$LASTCHANGE
+    fi
+    if [[ $1 -lt $FIRSTCHANGE ]]
+    then
+        RET=$FIRSTCHANGE
+    fi
+    echo $RET
+}
+
+function changedate()
+{
+    p4 change -o $1 | grep ^Date: | sed 's/^Date://' | tr -d '\011'
+}
+
+function changedesc()
+{
+    p4 change -o $1 | grep ^Date: | sed 's/^Date://' | tr -d '\011'
+}
+
+function changecommitter()
+{
+    p4 change -o $1 | grep ^User: | sed 's/^User://' | tr -d '\011'
+}
+
+function setlastp4change()
+{
+    git tag -af "perforce#$1" -m "p4bridge"
+}
+
+function upsearch () {
+    test / == "$PWD" && return || test -e "$1" && return || cd .. && upsearch "$1"
+}
+
+
+read_properties()
+{
+  file="$1"
+  while IFS="=" read -r key value; do
+    case "$key" in
+      '#'*) ;;
+      *)
+        eval "export $key=\"$value\""
+    esac
+  done < "$file"
+}
+
+function setdepot()
+{
+    export P4BRIDGEDIR=".p4bridge"
+    export P4BRIDGEROOTDIR=$P4BRIDGEDIR"/root"
+    upsearch $P4BRIDGEDIR
+    read_properties "$P4BRIDGEDIR/config"
+}

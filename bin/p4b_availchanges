@@ -1,3 +1,4 @@
 #!/bin/bash
-. p4b_setdepot
+source p4butils
+setdepot
 p4 changes -s submitted $P4DEPOT/... | awk -v changelist=$1 '{ if ($2 > changelist) print $2 }' | sort -n

@@ -1,2 +1,0 @@
-#!/bin/bash
-git log --simplify-by-decoration --decorate --pretty=oneline | fgrep 'tag: ' | perl -ne '/tag: perforce#(\d+)/ && print "$1\n";' | sort -n -r | head -n 1

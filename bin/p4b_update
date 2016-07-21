@@ -1,6 +1,6 @@
 #!/bin/bash
-P4BRIDGEDIR=.p4bridge
-. p4b_setdepot
+source p4butils
+setdepot
 
 OPENED=`p4 opened 2>/dev/null | wc -l`
 if [ ! $OPENED -eq 0 ]

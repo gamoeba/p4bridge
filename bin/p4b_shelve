@@ -1,4 +1,7 @@
 #!/bin/bash
+source p4butils
+setdepot
+
 function printUsage()
 {
     echo "Usage: p4b shelve \"changelist description\""
@@ -10,7 +13,6 @@ then
     exit 1
 fi
 
-. p4b_setdepot
 FILES=`p4 opened 2>/dev/null | sed -e 's/#.*//g' | while read FILE; do printf "\\t%s\\n" $FILE; done`
 echo -e "Change: new\nDescription: $1\nFiles:\n$FILES" | p4 shelve -i 2>/dev/null
 p4 revert $FILES

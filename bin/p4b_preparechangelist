@@ -1,5 +1,6 @@
 #!/bin/bash
-. p4b_setdepot
+source p4butils
+setdepot
 
 ROOTDIR=$P4BRIDGEDIR/root
 

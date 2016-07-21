@@ -1,5 +1,7 @@
 #!/bin/bash
 # Check for proper number of command line args.
+source p4butils
+setdepot
 
 EXPECTED_ARGS=1
 E_BADARGS=65
@@ -9,8 +11,6 @@ then
   echo "Usage: `basename $0` {changelist-num}"
   exit $E_BADARGS
 fi
-
-. p4b_setdepot
 
 CHANGELIST=$1
 export CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
@@ -30,6 +30,7 @@ do
     then
         BASECL=`p4 fstat -T headChange $CHG | awk '/^\s*$/{next;}{print $3}'` 
         FILENAME=`echo $CHG | sed -n -e 's|'"$P4DEPOT"'/\(.*\)#.*|\1|p' `
+        BASECL=`p4limitchange $BASECL`
         TAGNAME="perforce#$BASECL"
         git checkout $TAGNAME $FILENAME
     fi 
@@ -48,9 +49,9 @@ do
     git checkout $FILENAME
 done
 
-DESC=`p4b_changedesc $CHANGELIST`
-AUTHOR=`p4b_changecommitter $CHANGELIST`
-DATE=`p4b_changedate $CHANGELIST`
+DESC=`changedesc $CHANGELIST`
+AUTHOR=`changecommitter $CHANGELIST`
+DATE=`changedate $CHANGELIST`
 git --work-tree $P4BRIDGEROOTDIR commit -m "Unshelved from $P4DEPOT@$1
 
 $DESC

@@ -1,4 +1,6 @@
 #!/bin/bash
+source p4butils
+setdepot
 
 function printUsage()
 {

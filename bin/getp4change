@@ -1,3 +1,0 @@
-#!/bin/bash
-export CHANGE_NUM=$1
-git checkout `p4latestchange $CHANGE_NUM`
