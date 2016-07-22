@@ -1,8 +1,8 @@
 #!/bin/bash
 source p4butils
 setdepot
-git diff-tree --no-commit-id -r $1 | awk -v dd=$DEPOTDIR '{print "p4 revert -w "dd"/"$6 }' | 
-							while read -r line 
-							do 
-								${line} 
+git diff-tree --no-commit-id -r $1 | awk -v dd=$DEPOTDIR '{print "p4 revert -w "dd"/"$6 }' |
+							while read -r line
+							do
+								${line}
 							done

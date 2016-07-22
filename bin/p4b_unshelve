@@ -18,30 +18,30 @@ export CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
 #remove any previous branch
 git branch -D shelved/$CHANGELIST 2>/dev/null
 #create a new orphaned branch
-git checkout --orphan shelved/$CHANGELIST 
+git checkout --orphan shelved/$CHANGELIST
 #we don't want any content initially
 git reset --hard
 
 CHANGES=`p4 describe -s -S $CHANGELIST | sed -e '1,/^Shelved files.*/d' | awk '/^\s*$/{next;}{print $2}' `
 echo "$CHANGES" |
 while read CHG
-do 
+do
     if [[ ! "$CHG" =~ "#none" ]]
     then
-        BASECL=`p4 fstat -T headChange $CHG | awk '/^\s*$/{next;}{print $3}'` 
+        BASECL=`p4 fstat -T headChange $CHG | awk '/^\s*$/{next;}{print $3}'`
         FILENAME=`echo $CHG | sed -n -e 's|'"$P4DEPOT"'/\(.*\)#.*|\1|p' `
         BASECL=`limitp4change $BASECL`
         TAGNAME="perforce#$BASECL"
         git checkout $TAGNAME $FILENAME
-    fi 
-done 
+    fi
+done
 git commit -q -m "Base file versions:
 $CHANGES"
 echo "$CHANGES" |
 while read CHG
-do 
+do
     P4FILENAME=`echo $CHG | sed -e 's|#.*||g'`
-    MATCHSTR='s|'$P4DEPOT'/\(.*\)#.*|\1|p' 
+    MATCHSTR='s|'$P4DEPOT'/\(.*\)#.*|\1|p'
     FILENAME=`echo $CHG | sed -n -e $MATCHSTR `
     p4 unshelve -f -s $CHANGELIST $P4FILENAME > /dev/null
     git --work-tree $P4BRIDGEROOTDIR add $FILENAME
