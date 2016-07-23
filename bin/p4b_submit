@@ -1,15 +1,8 @@
 #!/bin/bash
-source p4butils
-setdepot
-
-function printUsage()
-{
-    echo "Usage: p4b submit \"changelist description\""
-}
 
 if [ $# -eq 0 ]
 then
-    printUsage
+    echo "Usage: p4b submit \"changelist description\""
     exit 1
 fi
 
