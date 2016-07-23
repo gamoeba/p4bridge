@@ -103,7 +103,7 @@ function p4b_clone()
     fi
 
     CHANGESPEC=""
-    if [ -z "$2" ]
+    if [ ! -z "$2" ]
     then
         CHANGESPEC="@$2"
     fi
@@ -133,8 +133,8 @@ function p4b_clone()
     git init .
     echo $P4BRIDGEDIR/ >> .git/info/exclude
     git checkout -b p4_master
-    p4b_availchanges $2 | while read CHG; do p4b_getupdate $CHG; done
-    git checkout .
+    p4b_availchanges $CHANGESPECHANGESPEC | while read CHG; do p4b_getupdate $CHG; done
+    git reset --hard 
     git checkout -b master
     cd - > /dev/null
 }
@@ -177,8 +177,9 @@ function p4b_availchanges()
 
 function p4b_getupdate()
 {
+    git --work-tree .p4bridge/root/ reset --hard 
     echo "fetching changelist $P4DEPOT@$1"
-    p4 sync -p $P4DEPOT"/..."@$1 > /dev/null
+    p4 sync -f $P4DEPOT"/..."@$1 > /dev/null
     git --work-tree .p4bridge/root/ add --all
     git --work-tree .p4bridge/root/ commit -q -m "tmp"
     if [ $? -eq 0 ]
@@ -331,7 +332,6 @@ function p4b_populateserver()
         DESC=`git show -s --format=%B $chg | while read r; do echo -e "\t $r"; done` 
         p4b submit "$DESC"
         p4b update
-        git status p4_master
     done
     git checkout $CURR_BRANCH
 }
