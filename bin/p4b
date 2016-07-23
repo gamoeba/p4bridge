@@ -1,5 +1,17 @@
 #!/bin/bash
 
+function showP4Untracked()
+{
+    find $P4BRIDGEROOTDIR -type f | p4 -x - fstat 2>&1 > /dev/null | sed 's/ -.*$//' >> ~/mismatch
+}
+
+
+
+function p4q()
+{
+   p4 $* > /dev/null 
+}
+
 function listp4changes()
 {
     git log --simplify-by-decoration --decorate --pretty=oneline p4_master | fgrep 'tag: ' | perl -ne '/tag: perforce#(\d+)/ && print "$1\n";' | sort -n -r
@@ -78,22 +90,6 @@ function setlastp4change()
     git tag -af "perforce#$1" -m "p4bridge"
 }
 
-function upsearch () {
-    test / == "$PWD" && return || test -e "$1" && return || cd .. && upsearch "$1"
-}
-
-
-read_properties()
-{
-  file="$1"
-  while IFS="=" read -r key value; do
-    case "$key" in
-      '#'*) ;;
-      *)
-        eval "export $key=\"$value\""
-    esac
-  done < "$file"
-}
 
 # Runs before setdepot is available, so must define own variables
 # also runs in parent directory initially, creates new directory,
@@ -143,13 +139,34 @@ function p4b_clone()
     cd - > /dev/null
 }
 
+function upsearch () {
+    test / == "$PWD" && return 1 || test -e "$1" && return || cd .. && upsearch "$1"
+}
+
+read_properties()
+{
+  file="$1"
+  while IFS="=" read -r key value; do
+    case "$key" in
+      '#'*) ;;
+      *)
+        eval "export $key=\"$value\""
+    esac
+  done < "$file"
+}
+
+function error_exit
+{
+	echo "$1" 1>&2
+	exit 1
+}
 
 function setdepot()
 {
     export P4BRIDGEDIR=".p4bridge"
     export P4BRIDGEROOTDIR=$P4BRIDGEDIR"/root"
-    upsearch $P4BRIDGEDIR
-    read_properties "$P4BRIDGEDIR/config"
+
+    upsearch $P4BRIDGEDIR && read_properties "$P4BRIDGEDIR/config" || error_exit "Not a p4bridge repo"
 }
 
 function p4b_availchanges()
@@ -161,7 +178,7 @@ function p4b_availchanges()
 function p4b_getupdate()
 {
     echo "fetching changelist $P4DEPOT@$1"
-    p4 sync $P4DEPOT"/..."@$1 > /dev/null
+    p4 sync -p $P4DEPOT"/..."@$1 > /dev/null
     git --work-tree .p4bridge/root/ add --all
     git --work-tree .p4bridge/root/ commit -q -m "tmp"
     if [ $? -eq 0 ]
@@ -173,18 +190,34 @@ function p4b_getupdate()
     fi
 }
 
+function executeCommands()
+{
+    while read -r line
+    do
+        eval $line
+    done
+}
+
 function p4b_preparechangelist()
 {
 
     p4 sync -f $P4DEPOT/...@`lastp4change` > /dev/null
     CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
 
-    git diff-tree --no-commit-id -r -M p4_master $CURR_BRANCH | awk -v dd=$P4BRIDGEROOTDIR '$5 ~ /^A/ {print "p4 add "dd"/"$6}; $5 ~ /^M/ {print "p4 edit "dd"/"$6}; $5 ~ /^R.*/ {print "p4 edit "dd"/"$6 "; p4 move "dd"/"$6" "dd"/"$7 } ' |
-    while read -r line
-    do
-        eval $line
-    done
-    git --work-tree $P4BRIDGEROOTDIR checkout .
+    DIFF=`git diff-tree --no-commit-id -r -M p4_master $CURR_BRANCH`
+    COMMANDS=`echo "$DIFF" | 
+    awk -v dd=$P4BRIDGEROOTDIR '
+    $5 ~ /^A/ {print "A p4q add "dd"/"$6}; 
+    $5 ~ /^M/ {print "B p4q edit "dd"/"$6}; 
+    $5 ~ /^D/ {print "B p4q delete "dd"/"$6}; 
+    $5 ~ /^R.*/ {
+    print "B p4q edit "dd"/"$6"; p4q move "dd"/"$6" "dd"/"$7 
+        } '` 
+    echo "$COMMANDS" | awk '$1 ~ /^B/ {$1="";print $0;} $1 ~ /^A/ {next;}' |
+        executeCommands
+    git --work-tree $P4BRIDGEROOTDIR reset --hard 
+    echo "$COMMANDS" | awk '$1 ~ /^A/ {$1="";print $0;} $1 ~ /^B/ {next;}' |
+        executeCommands
 }
 
 function p4b_revertchangelist()
@@ -281,8 +314,25 @@ function p4b_update()
         exit 1
     fi
     CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
-    git checkout p4_master && p4b_availchanges `lastp4change` | while read CHG; do p4b_getupdate $CHG; done
-    git checkout .
+    git checkout -q p4_master && p4b_availchanges `lastp4change` | while read CHG; do p4b_getupdate $CHG; done
+    git reset -q --hard 
+    git checkout -q $CURR_BRANCH
+}
+
+function p4b_populateserver() 
+{
+    p4b update
+    CURR_BRANCH=`git rev-parse --abbrev-ref HEAD`
+    git log --pretty=oneline | awk ' { print $1; } ' | tail -r | 
+    while read chg 
+    do
+        git checkout -q $chg
+        p4b preparechangelist
+        DESC=`git show -s --format=%B $chg | while read r; do echo -e "\t $r"; done` 
+        p4b submit "$DESC"
+        p4b update
+        git status p4_master
+    done
     git checkout $CURR_BRANCH
 }
 
@@ -295,8 +345,9 @@ then
 fi	
 command=$1
 shift
-if [ ! "$command" = "clone" ]
+if [ "$command" = "clone" ]
 then
-    setdepot
+    p4b_clone "$@"
+else
+    setdepot && p4b_$command "$@"
 fi
-p4b_$command "$@"
