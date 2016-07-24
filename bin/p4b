@@ -389,6 +389,13 @@ function p4b_populateserver()
     git checkout $CURR_BRANCH
 }
 
+function p4b_help()
+{
+    printf "Available commands:\n\n"
+    compgen -cf | grep -E "^p4b_" | sed -e 's/_/ /g'
+
+}
+
 export MAXFILESPERSYNC=100
 E_BADARGS=65
 
