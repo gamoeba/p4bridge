@@ -96,18 +96,52 @@ function setlastp4change()
 # and then changes back to parent
 function p4b_clone()
 {
-    if [ $# -eq 0 ]
+    STREAM=0
+    HELP=0
+    PARAMS=()
+    while [[ $# -gt 0 ]]
+    do
+        key="$1"
+
+        case $key in
+            -f|--from)
+                FROM="$2"
+                shift # past argument
+                ;;
+            -h|--help)
+                HELP=1
+                ;;
+            --stream)
+                STREAM=1
+                ;;
+            -*)
+                HELP=1
+                # unknown option
+                ;;
+            *)
+                PARAMS+=("$1")
+                ;;
+        esac
+        shift # past argument or value
+    done
+    PARAMNO=${#PARAMS[@]}
+    if [[ $PARAMNO -lt 1 || $PARAMNO -gt 2 || $HELP -eq 1 ]]
     then
-        echo "Usage: p4b clone //Depot/repo [starting changelist]"
+        echo "Usage: p4b clone [--from|-f changelist] [--stream] //depot/path [clonepath]" 
         exit 1
     fi
-
     
     P4BRIDGEDIR=".p4bridge"
 
-    P4CLIENTPREFIX=$USER"_"`hostname -s`
-    P4DEPOT=$1
-    CLONEDIR=`echo $P4DEPOT | sed -E "s|(/\|//)|_|g" | sed -E "s/^_//g"`
+    P4CLIENTPREFIX=$USER"_"`hostname -s`"_p4b_"
+    P4DEPOT=${PARAMS[0]}
+    if [[ -n ${PARAMS[1]} ]]
+    then
+        CLONEDIR=${PARAMS[1]}
+    else
+        CLONEDIR=`echo $P4DEPOT | sed -E "s|(/\|//)|_|g" | sed -E "s/^_//g"`
+    fi
+
     if [ -d "$CLONEDIR" ]
     then
         echo "Clone directory already exists"
@@ -116,7 +150,7 @@ function p4b_clone()
     mkdir $CLONEDIR
     cd $CLONEDIR
 
-    export P4CLIENT=$P4CLIENTPREFIX`echo $P4DEPOT | sed -E "s|(/\|//)|_|g"`
+    export P4CLIENT=$P4CLIENTPREFIX$CLONEDIR
     mkdir -p $P4BRIDGEDIR
     echo "P4CLIENT=$P4CLIENT" > $P4BRIDGEDIR/config
     echo "P4DEPOT=$P4DEPOT" >> $P4BRIDGEDIR/config
@@ -128,11 +162,15 @@ function p4b_clone()
     export GIT_DIR=$ROOT/.git
     export GIT_WORK_TREE=$ROOT
     P4DEPOTTRIM=`echo $P4DEPOT | sed "s|//||g"`
-    echo -e "Client: $P4CLIENT\nRoot: $ROOT\nOwner: $USER\nOptions: allwrite clobber compress\nView:\n\t$P4DEPOT/... //$P4CLIENT/...\n" | p4 client -i
+    if [[ $STREAM -eq 1 ]]
+    then
+        STREAMEXP="Stream: $P4DEPOT"
+    fi
+    echo -e "Client: $P4CLIENT\nRoot: $ROOT\nOwner: $USER\n$STREAMEXP\nOptions: allwrite clobber compress\nView:\n\t$P4DEPOT/... //$P4CLIENT/...\n" | p4 client -i
     echo $P4BRIDGEDIR/ >> .git/info/exclude
 
-    CHANGESPEC="$2"
-    if [ -z "$2" ]
+    CHANGESPEC="$FROM"
+    if [ -z "$FROM" ]
     then
         CHANGESPEC="`p4b_availchanges | head -n1`"
     fi
