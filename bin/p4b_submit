@@ -5,5 +5,26 @@ then
     echo "Usage: p4b submit \"changelist description\""
     exit 1
 fi
+function checkpreparebranch()
+{
+    WORKBRANCH=`git rev-parse --abbrev-ref HEAD`
+    if [ ! "$WORKBRANCH" = "p4_prepare" ]
+    then
+        echo "Command needs a prepared changelist"
+        exit 1
+    fi
+}
 
+function remove_prepare()
+{
+    git checkout -f p4_master
+    git reset --hard
+    git clean -fd
+    git branch -D p4_prepare
+}
+
+
+
+checkpreparebranch
 p4 submit -d "$1" >/dev/null
+remove_prepare
