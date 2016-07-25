@@ -9,7 +9,7 @@ function showP4Untracked()
 
 function p4q()
 {
-   p4 $* > /dev/null 
+   p4 $* > /dev/nul
 }
 
 function listp4changes()
@@ -127,10 +127,10 @@ function p4b_clone()
     PARAMNO=${#PARAMS[@]}
     if [[ $PARAMNO -lt 1 || $PARAMNO -gt 2 || $HELP -eq 1 ]]
     then
-        echo "Usage: p4b clone [--from|-f changelist] [--stream] //depot/path [clonepath]" 
+        echo "Usage: p4b clone [--from|-f changelist] [--stream] //depot/path [clonepath]"
         exit 1
     fi
-    
+
     P4BRIDGEDIR=".p4bridge"
 
     P4CLIENTPREFIX=$USER"_"`hostname -s`"_p4b_"
@@ -158,7 +158,7 @@ function p4b_clone()
     mkdir -p $ROOT
     git init .
     git commit --allow-empty -m "base commit (empty)"
-    git worktree add $ROOT -b p4_master 
+    git worktree add $ROOT -b p4_master
     export GIT_DIR=$ROOT/.git
     export GIT_WORK_TREE=$ROOT
     P4DEPOTTRIM=`echo $P4DEPOT | sed "s|//||g"`
@@ -203,8 +203,8 @@ read_properties()
 
 function error_exit
 {
-	echo "$1" 1>&2
-	exit 1
+    echo "$1" 1>&2
+    exit 1
 }
 
 function checkdevbranch()
@@ -279,14 +279,14 @@ function p4b_preparechangelist()
     p4 sync -f $P4DEPOT/...@`lastp4change` > /dev/null
 
     DIFF=`git diff-tree --no-commit-id -r -M p4_master $CURR_BRANCH`
-    COMMANDS=`echo "$DIFF" | 
+    COMMANDS=`echo "$DIFF" |
     awk -v dd=$P4BRIDGEROOTDIR '
-    $5 ~ /^A/ {print "A p4q add "dd"/"$6}; 
-    $5 ~ /^M/ {print "B p4q edit "dd"/"$6}; 
-    $5 ~ /^D/ {print "B p4q delete "dd"/"$6}; 
+    $5 ~ /^A/ {print "A p4q add "dd"/"$6};
+    $5 ~ /^M/ {print "B p4q edit "dd"/"$6};
+    $5 ~ /^D/ {print "B p4q delete "dd"/"$6};
     $5 ~ /^R.*/ {
-    print "B p4 edit "dd"/"$6"; p4q move "dd"/"$6" "dd"/"$7 
-        } '` 
+    print "B p4 edit "dd"/"$6"; p4q move "dd"/"$6" "dd"/"$7
+        } '`
     echo "$COMMANDS" | awk '$1 ~ /^B/ {$1="";print $0;} $1 ~ /^A/ {next;}' |
         executeCommands
     git checkout master -b p4_prepare
@@ -324,14 +324,14 @@ function p4b_shelve()
     fi
 
     FILES=`getOpenedP4Files`
-    echo -e "Change: new\nDescription: $1\nFiles:\n$FILES" | p4 shelve -i | grep "shelved" 
+    echo -e "Change: new\nDescription: $1\nFiles:\n$FILES" | p4 shelve -i | grep "shelved"
     p4b revert
 }
 
 function p4b_changelistfiles()
 {
-    p4 describe -s -S $1 | 
-        grep -E "^\.\.\." | 
+    p4 describe -s -S $1 |
+        grep -E "^\.\.\." |
         sed -E -e 's/... (.*#[0-9][0-9]*) .*/\1/g'
 }
 
@@ -381,7 +381,7 @@ function p4b_unshelve()
         FILENAME=`echo $CHG | sed -n -e $MATCHSTR `
         p4 unshelve -f -s $CHANGELIST $P4FILENAME > /dev/null
         git add $FILENAME
-        # now reset both perforce 
+        # now reset both perforce
         p4 revert $P4FILENAME > /dev/null
     done
 
@@ -411,16 +411,16 @@ function p4b_update()
     p4b_newchanges `lastp4change` | while read CHG; do p4b_getupdate $CHG; done
 }
 
-function p4b_populateserver() 
+function p4b_populateserver()
 {
     checkdevbranch
     p4b update
-    git log --pretty=oneline | awk ' { print $1; } ' | tail -r | 
-    while read chg 
+    git log --pretty=oneline | awk ' { print $1; } ' | tail -r |
+    while read chg
     do
         git checkout -q $chg
         p4b preparechangelist
-        DESC=`git show -s --format=%B $chg | while read r; do echo -e "\t $r"; done` 
+        DESC=`git show -s --format=%B $chg | while read r; do echo -e "\t $r"; done`
         p4b submit "$DESC"
         p4b update
     done
@@ -431,7 +431,6 @@ function p4b_help()
 {
     printf "Available commands:\n\n"
     compgen -cf | grep -E "^p4b_" | sed -e 's/_/ /g'
-
 }
 
 export MAXFILESPERSYNC=100
@@ -441,7 +440,7 @@ if [[ $# -lt 1 ]]
 then
  echo "Usage: `basename $0` command {command-args}"
  exit $E_BADARGS
-fi	
+fi
 command=$1
 shift
 if [ "$command" = "clone" ]
