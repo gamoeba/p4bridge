@@ -5,11 +5,9 @@ function showP4Untracked()
     find $P4BRIDGEROOTDIR -type f | p4 -x - fstat 2>&1 > /dev/null | sed 's/ -.*$//' >> ~/mismatch
 }
 
-
-
 function p4q()
 {
-   p4 $* > /dev/nul
+   p4 $* > /dev/null
 }
 
 function listp4changes()
