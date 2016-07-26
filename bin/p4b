@@ -183,6 +183,14 @@ function p4b_clone()
     cd - > /dev/null
 }
 
+function p4b_shelves()
+{
+    if [ ! -z $1 ]; then
+        USERFILTER="-u $1"
+    fi
+    p4 changes -s shelved $USERFILTER | sed -E -e 's/Change ([0-9][0-9]*) .*\*pending\*/\1/g'
+}
+
 function upsearch () {
     test / == "$PWD" && return 1 || test -e "$1" && return || cd .. && upsearch "$1"
 }
