@@ -30,9 +30,9 @@ function limitp4change()
     RET=$1
     FIRSTCHANGE=`firstp4change`
     LASTCHANGE=`lastp4change`
-    if [[ $1 -gt $LASTP4CHANGE ]]
+    if [[ $1 -gt $LASTCHANGE ]]
     then
-        RET=$LASTCHANGE
+        exit 1
     fi
     if [[ $1 -lt $FIRSTCHANGE ]]
     then
@@ -341,6 +341,17 @@ function p4b_changelistfiles()
         sed -E -e 's/... (.*#[0-9][0-9]*) .*/\1/g'
 }
 
+function p4b_show()
+{
+    TAG=`git tag -l | grep -E "#$1\$"`
+    if [ ! -z $TAG ]
+    then 
+        git difftool -d $TAG^!
+    else
+        echo "unknown changelist"
+    fi
+}
+
 function p4b_unshelve()
 {
     checkdevbranch
@@ -372,34 +383,41 @@ function p4b_unshelve()
         then
             BASECL=`p4 fstat -T headChange $CHG | awk '/^\s*$/{next;}{print $3}'`
             FILENAME=`echo $CHG | sed -n -e 's|'"$P4DEPOT"'/\(.*\)#.*|\1|p' `
-            BASECL=`limitp4change $BASECL`
-            TAGNAME="perforce#$BASECL"
-            git checkout $TAGNAME $FILENAME
+            LBASECL=`limitp4change $BASECL`
+            if [ $? != 0 ]; then
+                echo "Unknown p4 changelist detected. Run p4b update?"
+                exit 1
+            fi
+            TAGNAME="perforce#$LBASECL"
+            git checkout -q $TAGNAME $FILENAME
         fi
     done
-    git commit -q -m "Base file versions:
-    $CHANGES"
-    echo "$CHANGES" |
-    while read CHG
-    do
-        P4FILENAME=`echo $CHG | sed -e 's|#.*||g'`
-        MATCHSTR='s|'$P4DEPOT'/\(.*\)#.*|\1|p'
-        FILENAME=`echo $CHG | sed -n -e $MATCHSTR `
-        p4 unshelve -f -s $CHANGELIST $P4FILENAME > /dev/null
-        git add $FILENAME
-        # now reset both perforce
-        p4 revert $P4FILENAME > /dev/null
-    done
+    if [ $? == 0 ]
+    then
+        git commit -q -m "Base file versions:
+        $CHANGES"
+        echo "$CHANGES" |
+        while read CHG
+        do
+            P4FILENAME=`echo $CHG | sed -e 's|#.*||g'`
+            MATCHSTR='s|'$P4DEPOT'/\(.*\)#.*|\1|p'
+            FILENAME=`echo $CHG | sed -n -e $MATCHSTR `
+            p4 unshelve -f -s $CHANGELIST $P4FILENAME > /dev/null
+            git add $FILENAME
+            # now reset both perforce
+            p4 revert $P4FILENAME > /dev/null
+        done
 
-    git commit -q -m "tmp"
-    amendChangelistWithCommitInfo $CHANGELIST "Shelved@$1
-    Previous versions of files:
-    $CHANGES"
+        git commit -q -m "tmp"
+        amendChangelistWithCommitInfo $CHANGELIST "Shelved@$1
+        Previous versions of files:
+        $CHANGES"
 
-    git tag -af "shelved#$CHANGELIST" -m "p4bridge"
+        git tag -af "shelved#$CHANGELIST" -m "p4bridge"
 
+    fi
     git checkout -q -f p4_master
-    git clean -fd
+    git clean -fd > /dev/null
 }
 
 function p4b_update()
