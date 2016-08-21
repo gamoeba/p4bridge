@@ -352,6 +352,12 @@ function p4b_show()
     fi
 }
 
+function get_shelved_files()
+{
+    CHANGELIST=$1
+    p4 describe -s -S $CHANGELIST | sed -e '1,/^Shelved files.*/d' | awk '/^\s*$/{next;}{print $2" "$3}'
+}
+
 function p4b_unshelve()
 {
     checkdevbranch
@@ -367,6 +373,12 @@ function p4b_unshelve()
     fi
 
     CHANGELIST=$1
+    CHANGES=`get_shelved_files $CHANGELIST`
+    if [ "$CHANGES" = "" ]
+    then
+        echo "Changelist $CHANGELIST has no shelved files"
+        exit 1
+    fi
 
     #remove any previous branch
     git branch -D shelved/$CHANGELIST 2>/dev/null
@@ -375,7 +387,7 @@ function p4b_unshelve()
     #we don't want any content initially
     git reset --hard
 
-    CHANGES=`p4 describe -s -S $CHANGELIST | sed -e '1,/^Shelved files.*/d' | awk '/^\s*$/{next;}{print $2" "$3}' `
+ 
     echo "$CHANGES" |
     while read CHG TYPE
     do
