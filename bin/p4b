@@ -355,10 +355,29 @@ function p4b_show()
 function get_shelved_files()
 {
     CHANGELIST=$1
-    p4 describe -s -S $CHANGELIST | sed -e '1,/^Shelved files.*/d' | awk '/^\s*$/{next;}{print $2" "$3}'
+    p4 describe -s -S $CHANGELIST | sed -e '1,/^Shelved files.*/d' | awk '/^\s*$/{next;}{print $2}'
 }
 
-function p4b_unshelve()
+function get_sha()
+{
+    git rev-list -n 1 $1 2>/dev/null
+}
+
+function unique_tag() {
+    CL=$1
+    get_sha $CL
+    REV=1
+    CL=$1_$REV
+    while [ $? == 0 ]
+    do
+        git rev-parse --verify -q $CL > /dev/null
+        REV=REV+1
+        CL=$1_$REV
+    done
+    echo $CL
+}
+
+function p4b_fetch()
 {
     checkdevbranch
     # Check for proper number of command line args.
@@ -381,15 +400,15 @@ function p4b_unshelve()
     fi
 
     #remove any previous branch
-    git branch -D shelved/$CHANGELIST 2>/dev/null
+    # git branch -D shelved/$CHANGELIST 2>/dev/null
     #create a new orphaned branch
-    git checkout --orphan shelved/$CHANGELIST
+    # git checkout -b shelved/$CHANGELIST
     #we don't want any content initially
-    git reset --hard
+    #git reset --hard
+    EXISTING=`get_sha "shelved#$CHANGELIST"`
 
- 
-    echo "$CHANGES" |
-    while read CHG TYPE
+    MAX_CL=0 
+    for CHG in $CHANGES 
     do
         if [[ ! "$CHG" =~ "#none" ]]
         then
@@ -400,17 +419,20 @@ function p4b_unshelve()
                 echo "Unknown p4 changelist detected. Run p4b update?"
                 exit 1
             fi
-            TAGNAME="perforce#$LBASECL"
-            git checkout -q $TAGNAME $FILENAME
+            if [[ $BASECL > $MAX_CL ]]
+            then
+                MAX_CL=$BASECL
+            fi
+            #TAGNAME="perforce#$LBASECL"
+            #git checkout -q $TAGNAME $FILENAME
         fi
     done
+    TAGNAME="perforce#$MAX_CL"
     if [ $? == 0 ]
     then
-        git commit -q -m "Base file versions:
-        $CHANGES"
-        p4 unshelve -f -s $CHANGELIST
-        echo "$CHANGES" |
-        while read CHG TYPE
+        git checkout -q $TAGNAME
+        p4 unshelve -f -s $CHANGELIST > /dev/null
+        for CHG in $CHANGES
         do
             P4FILENAME=`echo $CHG | sed -e 's|#.*||g'`
             MATCHSTR='s|'$P4DEPOT'/\(.*\)#.*|\1|p'
